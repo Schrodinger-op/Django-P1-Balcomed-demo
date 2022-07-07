@@ -146,7 +146,13 @@
 						<span class="price">₹{{ doctor.price }}</span>
 					</div> <!-- price-wrap.// -->
 				</div>
-				<a href="#" class="btn btn-block btn-primary">Book Appointment </a>
+				{% if doctor.slots == 0 %}
+        			<h5 class="text-danger">No Slots Available</h5>
+
+				{% else %}
+					<a href="{% url 'add_cart' doctor.id %}" class="btn btn-block btn-primary">Book Appointment </a>
+				{% endif %}
+
 			</figcaption>
 		</figure>
 	</div> <!-- col.// -->
