@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Cart, CartItem
-from team.models import Doctor
+from team.models import Doctor, Slot
 from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
@@ -12,7 +12,21 @@ def _cart_id(request):
     return cart
 
 def add_cart(request, doctor_id):
+
     doctor = Doctor.objects.get(id=doctor_id) #get the doctor
+    doctor_slot = []    #get the doctor slot
+    if request.method == 'POST':
+        for item in request.POST:
+            key = item
+            value = request.POST[key]
+            
+            try:
+                slot = Slot.objects.get(doctor=doctor, slot_category__iexact=key, slot_value__iexact=value)
+                doctor_slot.append(slot)
+
+            except:
+                pass
+
     try:
         cart = Cart.objects.get(cart_id=_cart_id(request) ) #get the cart using the cart_id present in the session
     except Cart.DoesNotExist:
@@ -21,36 +35,69 @@ def add_cart(request, doctor_id):
         )
     cart.save()
 
-    try:
-        cart_item = CartItem.objects.get(doctor=doctor, cart=cart)
-        cart_item.frequency += 1 
-        cart_item.save()
-    except CartItem.DoesNotExist:
+    is_cart_item_exists = CartItem.objects.filter(doctor=doctor, cart=cart).exists()
+    if is_cart_item_exists:
+        cart_item = CartItem.objects.filter(doctor=doctor, cart=cart)
+        # existing_slots -> database
+        # current slot -> doctor_variation
+        # item_id -> database
+        ex_var_list = []
+        id = []
+        for item in cart_item:
+            existing_slot = item.slots.all()
+            ex_var_list.append(list(existing_slot))
+            id.append(item.id)
+
+        print(ex_var_list)
+
+        if doctor_slot in ex_var_list:
+            # increase the cart item frequency
+            index = ex_var_list.index(doctor_slot)
+            item_id = id[index]
+            item = CartItem.objects.get(doctor=doctor, id=item_id)
+            item.frequency += 1
+            item.save()
+
+        else:
+            item = CartItem.objects.create(doctor=doctor, frequency=1, cart=cart)
+            if len(doctor_slot) > 0:
+                item.variations.clear()
+                item.variations.add(*doctor_slot)
+            item.save()
+    else:
         cart_item = CartItem.objects.create(
             doctor = doctor,
             frequency = 1,
             cart = cart,
         )
+        if len(doctor_slot)>0:
+            cart_item.slots.clear()
+            for item in doctor_slot:
+                cart_item.slots.add(item)
+        
         cart_item.save()
-
     return redirect('cart')
 
-def remove_cart(request, doctor_id):
+def remove_cart(request, doctor_id, cart_item_id):
     cart = Cart.objects.get(cart_id= _cart_id(request))
     doctor = get_object_or_404(Doctor, id=doctor_id)
-    cart_item = CartItem.objects.get(doctor=doctor, cart=cart)
-    if cart_item.frequency > 1:
-        cart_item.frequency -= 1
-        cart_item.save()
+    try:
+        cart_item = CartItem.objects.get(doctor=doctor, cart=cart, id=cart_item_id)
+        if cart_item.frequency > 1:
+            cart_item.frequency -= 1
+            cart_item.save()
 
-    else:
-        cart_item.delete()
+        else:
+            cart_item.delete()
+
+    except:
+        pass
     return redirect('cart')
 
-def remove_cart_item(request, doctor_id):
+def remove_cart_item(request, doctor_id, cart_item_id):
     cart = Cart.objects.get(cart_id=_cart_id(request))
     doctor = get_object_or_404(Doctor, id=doctor_id)
-    cart_item = CartItem.objects.get(doctor=doctor, cart=cart)
+    cart_item = CartItem.objects.get(doctor=doctor, cart=cart, id=cart_item_id)
     cart_item.delete()
     return redirect('cart')
 

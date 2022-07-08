@@ -1,5 +1,5 @@
 from django.db import models
-from team.models import Doctor
+from team.models import Doctor, Slot
 
 # Create your models here.
 class Cart(models.Model):
@@ -11,6 +11,7 @@ class Cart(models.Model):
 
 class CartItem(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    slots = models.ManyToManyField(Slot, blank=True)
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
     frequency = models.IntegerField()
     is_active = models.BooleanField(default=True)
@@ -18,6 +19,6 @@ class CartItem(models.Model):
     def sub_total(self):
         return self.doctor.price * self.frequency
 
-    def __str__(self):
+    def __unicode__(self):
         return self.doctor
 

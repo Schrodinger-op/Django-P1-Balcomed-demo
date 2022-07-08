@@ -42,7 +42,13 @@
 			<div class="aside"><img src="{{ cart_item.doctor.image.url }}" class="img-sm"></div>
 			<figcaption class="info">
 				<a href="{{ cart_item.doctor.get_url }}" class="title text-dark">{{ cart_item.doctor.doctor_name }}</a>
-				<p class="text-muted small">Date: 25 Mpx <br> Time Slot: Canon</p>
+				<p class="text-muted small">
+					{%  if cart_item.slots.all %}
+						{% for item in cart_item.slots.all %}
+							{{ item.slot_category | capfirst }} : {{ item.slot_value | capfirst }}<br>
+						{% endfor %}
+					{% endif %}
+				</p>
 			</figcaption>
 		</figure>
 	</td>
@@ -52,7 +58,7 @@
 						<div class="input-group input-spinner">
 							
 							<div class="input-group-prepend">
-								<a href="{% url 'remove_cart' cart_item.doctor.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
+								<a href="{% url 'remove_cart' cart_item.doctor.id cart_item.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
 							</div>
 							<input type="text" class="form-control"  value="{{ cart_item.frequency }}">
 
@@ -67,7 +73,7 @@
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right"> 
-	<a href="{% url 'remove_cart_item' cart_item.doctor.id %}" class="btn btn-danger"> Cancel</a>
+	<a href="{% url 'remove_cart_item' cart_item.doctor.id cart_item.id %}" onclick="return confirm('Are you sure you want to cancel the slot booking?')" class="btn btn-danger"> Cancel</a>
 	</td>
 </tr>
 {% endfor %}

@@ -1,3 +1,4 @@
+from tkinter import CASCADE
 from django.db import models
 from django.urls import reverse
 from department.models import Department
@@ -23,4 +24,30 @@ class Doctor(models.Model):
 
     def __str__(self):
         return self.doctor_name
+
+class SlotManager(models.Manager):
+    
+    def dates(self):
+        return super(SlotManager, self).filter(slot_category='date', is_active=True)
+
+    def times(self):
+        return super(SlotManager, self).filter(slot_category='time', is_active=True)
+
+slot_category_choice = (
+    ('date', 'date'),
+    ('time', 'time'),
+)
+
+class Slot(models.Model):
+
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    slot_category = models.CharField(max_length=100, choices=slot_category_choice)
+    slot_value     = models.CharField(max_length=100)
+    is_active     = models.BooleanField(default=True)
+    created_date   = models.DateTimeField(auto_now=True)
+
+    objects = SlotManager()
+
+    def __str__(self):
+        return self.slot_value
 
