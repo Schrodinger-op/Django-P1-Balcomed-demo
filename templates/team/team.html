@@ -39,7 +39,7 @@
 				<li><a href="{% url 'team' %}">All Doctors </a></li>
 				
 				{% for department in links %}
-				<li><a href="{{ department.get_url  }}">{{ department.dept_name  }} </a></li>
+				<li><a href="{{ department.get_url  }}">{{ department.dept_name }} </a></li>
 				{% endfor %}
 
 				</ul>
