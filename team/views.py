@@ -38,7 +38,12 @@ def doctor_detail(request, department_slug, doctor_slug):
 
     try:
         single_doctor = Doctor.objects.get(department__slug= department_slug, slug=doctor_slug)
-        in_cart = CartItem.objects.filter(cart__cart_id= _cart_id(request), doctor=single_doctor).exists()
+
+        if request.user.is_authenticated:
+            in_cart = CartItem.objects.filter(user=request.user, doctor=single_doctor).exists()
+        
+        else:
+            in_cart = CartItem.objects.filter(cart__cart_id= _cart_id(request), doctor=single_doctor).exists()
 
     
     except Exception as e:
