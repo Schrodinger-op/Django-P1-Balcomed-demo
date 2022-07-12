@@ -5,6 +5,7 @@ from .models  import Doctor, Slot
 
 class DoctorAdmin(admin.ModelAdmin):
     list_display = ('doctor_name', 'price', 'slots', 'department', 'modified_date', 'is_available')
+    list_editable = ('slots', 'is_available','price')
     prepopulated_fields = {'slug': ('doctor_name',)}
 
 class SlotAdmin(admin.ModelAdmin):
